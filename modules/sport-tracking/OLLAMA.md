@@ -32,3 +32,15 @@ La vérification visuelle du nouveau bouton reste à faire : l'outil navigateur
 a refusé l'accès à la page par sa politique de sécurité pendant cette session.
 Les chemins d'erreur `429` et `503` sont implémentés, mais n'ont pas été vérifiés
 de bout en bout pendant cette session.
+
+## Graphiques et résumés — 20 octobre 2026
+
+La page progression affiche une courbe sélectionnable : poids, tour de taille,
+sommeil ou énergie. Les dates déterminent l'espacement horizontal ; les valeurs
+manquantes sont ignorées, et l'échelle verticale est explicitement ajustée aux
+valeurs. La dernière valeur et la variation entre première et dernière date sont
+calculées par Angular, sans IA. Une date unique ne donne pas de tendance.
+Le backend rejette les réponses Ollama tronquées et ajoute systématiquement une
+limite d'interprétation lorsqu'une seule mesure est disponible.
+Compilations backend et frontend réussies sans tests automatisés. Contrôle visuel
+du graphique restant à effectuer ; les réponses HTTP frontend/backend sont 200.

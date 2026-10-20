@@ -73,8 +73,12 @@ public class ProgressSummaryController {
             var response = client.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() != 200) throw unavailable();
             var json = mapper.readTree(response.body());
+            if (json == null || !json.isObject()) throw unavailable();
             String text = json.path("response").asText("").strip();
-            if (text.isEmpty() || !json.path("done").asBoolean(false)) throw unavailable();
+            if (text.isEmpty() || !json.path("done").asBoolean(false)
+                    || "length".equals(json.path("done_reason").asText())) {
+                throw unavailable();
+            }
             // Reject generated dates not present in the source measurements.
             var dates = java.util.regex.Pattern.compile("\\b\\d{4}-\\d{2}-\\d{2}\\b").matcher(text);
             var sourceDates = entries.stream().map(e -> e.getMeasurementDate().toString()).toList();
@@ -83,6 +87,9 @@ public class ProgressSummaryController {
                     throw new ResponseStatusException(HttpStatus.SERVICE_UNAVAILABLE,
                             "Le résumé contient une date incohérente et a été écarté. Réessayez.");
                 }
+            }
+            if (entries.size() == 1) {
+                text = "Une seule mesure est disponible : elle ne permet pas d'évaluer une évolution.\n\n" + text;
             }
             return new Summary(text, model, entries.size());
         } catch (InterruptedException ex) {

@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { Component, effect, inject, signal, untracked } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { ProgressEntryApiService } from '../../shared/progress-entry-api.service';
@@ -20,6 +20,37 @@ export class ProgressPage {
   private readonly reloadVersion = signal(0);
 
   readonly entries = signal<ProgressEntry[]>([]);
+  readonly metrics = [
+    { key: 'weight', label: 'Poids', unit: 'kg' },
+    { key: 'waistCircumference', label: 'Tour de taille', unit: 'cm' },
+    { key: 'sleepHours', label: 'Sommeil', unit: 'h' },
+    { key: 'energyLevel', label: 'Énergie', unit: '/5' },
+  ] as const;
+  readonly metricIndex = signal(0);
+  readonly metric = computed(() => this.metrics[this.metricIndex()]);
+  readonly chart = computed(() => {
+    const key = this.metric().key;
+    const values = this.entries()
+      .filter(e => e[key] != null && Number.isFinite(e[key]))
+      .map(e => ({ id: e.id, date: e.measurementDate, value: e[key] as number }))
+      .sort((a, b) => a.date.localeCompare(b.date) || a.id - b.id);
+    if (!values.length) return null;
+    const min = Math.min(...values.map(v => v.value));
+    const max = Math.max(...values.map(v => v.value));
+    const low = min === max ? Math.max(0, min - 1) : min;
+    const high = min === max ? max + 1 : max;
+    const first = values[0];
+    const last = values[values.length - 1];
+    const start = Date.parse(first.date);
+    const span = Date.parse(last.date) - start;
+    const points = values.map(v => ({
+      ...v,
+      x: span ? 70 + (Date.parse(v.date) - start) / span * 640 : 390,
+      y: 200 - (v.value - low) / (high - low) * 160,
+    }));
+    return { points, line: points.map(p => `${p.x},${p.y}`).join(' '),
+      first, last, low, high, delta: last.value - first.value, distinctDates: span > 0 };
+  });
   readonly aiBusy = signal(false);
   readonly aiSummary = signal('');
   readonly aiError = signal('');

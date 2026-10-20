@@ -6,7 +6,47 @@
   </button>
 </header>
 
-<section class="editor" aria-labelledby="ai-title">
+<section class="editor insights" aria-labelledby="chart-title">
+  <h2 id="chart-title">Évolution de vos mesures</h2>
+  <label>Indicateur
+    <select #metricSelect (change)="metricIndex.set(+metricSelect.value)" [value]="metricIndex()">
+      @for (item of metrics; track item.key; let i = $index) {
+        <option [value]="i">{{ item.label }} ({{ item.unit }})</option>
+      }
+    </select>
+  </label>
+  @if (loading()) {
+    <p>Chargement des mesures…</p>
+  } @else if (loadError()) {
+    <p>Le graphique sera disponible après le chargement des mesures.</p>
+  } @else if (chart(); as c) {
+    <p>Dernière valeur : <strong>{{ c.last.value | number:'1.0-2' }} {{ metric().unit }}</strong>.
+      @if (c.distinctDates) {
+        Variation depuis le {{ c.first.date | date:'d MMM y':'':'fr' }} :
+        <strong>{{ c.delta > 0 ? '+' : '' }}{{ c.delta | number:'1.0-2' }} {{ metric().unit }}</strong>.
+      } @else { Plusieurs dates sont nécessaires pour observer une évolution. }
+    </p>
+    <svg viewBox="0 0 780 250" role="img" [attr.aria-label]="'Évolution : ' + metric().label">
+      <title>{{ metric().label }} — valeurs disponibles, détaillées dans le tableau des mesures</title>
+      <path d="M70 40V200H710" fill="none" stroke="#8996ac" />
+      <text x="60" y="45" text-anchor="end">{{ c.high | number:'1.0-2' }}</text>
+      <text x="60" y="200" text-anchor="end">{{ c.low | number:'1.0-2' }}</text>
+      <polyline [attr.points]="c.line" fill="none" stroke="#2463e8" stroke-width="3" />
+      @for (point of c.points; track point.id) {
+        <circle [attr.cx]="point.x" [attr.cy]="point.y" r="4" fill="#2463e8">
+          <title>{{ point.date }} : {{ point.value }} {{ metric().unit }}</title>
+        </circle>
+      }
+      <text x="70" y="230">{{ c.first.date | date:'dd/MM/yyyy' }}</text>
+      <text x="710" y="230" text-anchor="end">{{ c.last.date | date:'dd/MM/yyyy' }}</text>
+    </svg>
+    <p class="chart-note">Échelle verticale ajustée aux valeurs. Les points relient les mesures disponibles ; les valeurs manquantes sont ignorées. Une variation n'est pas un jugement sur votre santé.</p>
+  } @else {
+    <p>Aucune valeur de {{ metric().label.toLowerCase() }} enregistrée. Ajoutez une mesure pour afficher la courbe.</p>
+  }
+</section>
+
+<section class="editor insights" aria-labelledby="ai-title">
   <h2 id="ai-title">Résumé de progression avec Ollama</h2>
   <p>Analyse locale des 30 dernières mesures, uniquement à votre demande. Les données restent sur cet ordinateur.</p>
   <button class="button button-primary" type="button" (click)="summarize()"

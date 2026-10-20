@@ -1,4 +1,10 @@
 :host { display: block; }
+.insights { padding: 22px; }
+.insights label { max-width: 300px; margin-top: 16px; }
+.insights svg { display: block; width: 100%; height: auto; min-height: 160px; }
+.insights svg text { font-size: 14px; fill: #46536c; }
+.insights p { line-height: 1.6; }
+.chart-note { color: #68758b; font-size: .82rem; }
 .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin: 12px 0 30px; }
 h1 { margin: 0; color: #111e3c; font-size: clamp(2rem, 4vw, 2.65rem); font-weight: 700; letter-spacing: -.045em; line-height: 1.12; }
 h2 { margin: 0; color: #13203d; font-size: 1.2rem; font-weight: 650; letter-spacing: -.025em; }
